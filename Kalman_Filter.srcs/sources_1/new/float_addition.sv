@@ -56,47 +56,37 @@ module Float_addition(input logic clk,
                     end
 
                 load_b: begin
-                    b <= idata; 
+                    if (idata.exponent>a.exponent) begin
+                        a<=idata;
+                        b<=a;
+                    end
+                    else
+                        b <= idata; 
                     state<=calculate_delta_exponent;
                     end
 
                 calculate_delta_exponent: begin
-                    if (a.exponent>b.exponent)
-                        delta_exponent<=a.exponent-b.exponent;
-                    else
-                        delta_exponent<=b.exponent-a.exponent;
+                    delta_exponent<=a.exponent-b.exponent;
                     state<=equalize_exponent;
                 end
 
                 equalize_exponent:begin
-                    if (a.exponent>b.exponent)
-                        equalized_smallest_num<={1'b1,b.significant}>>delta_exponent;
-                    else
-                        equalized_smallest_num<={1'b1,a.significant}>>delta_exponent;
+                    equalized_smallest_num<={1'b1,b.significant}>>delta_exponent;
                     state<=add_significants;
                 end
 
                 add_significants:begin
-                    if (a.exponent>b.exponent)
-                        equalized_smallest_num<=equalized_smallest_num+{1'b1,a.significant};
-                    else
-                        equalized_smallest_num<=equalized_smallest_num+{1'b1,b.significant};
+                    equalized_smallest_num<=equalized_smallest_num+{1'b1,a.significant};
                     state<=normalize;
                 end
                 
                 normalize:begin
                     if (equalized_smallest_num[24]) begin
-                        if (a.exponent>b.exponent)
-                            result.exponent<=a.exponent+1;
-                        else
-                            result.exponent<=b.exponent+1;
+                        result.exponent<=a.exponent+1;
                         result.significant<={equalized_smallest_num[23:1]};
                     end
                     else begin
-                        if (a.exponent>b.exponent)
-                            result.exponent<=a.exponent;
-                        else
-                            result.exponent<=b.exponent;
+                        result.exponent<=a.exponent;
                         result.significant<=equalized_smallest_num[22:0];
                     end
                     state<=send_result;

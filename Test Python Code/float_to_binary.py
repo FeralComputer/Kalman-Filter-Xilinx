@@ -31,23 +31,23 @@ def float64_to_bin(value):
 
 if __name__ == '__main__':
 
-    # for f in 0.0,1, 2,4,6:
-    #     print('Test value: %f' % f)
-    #     binary = float32_to_bin(f)
-    #     print('\tFloat to binary: %r' % binary)
-    #     print('\tLength is: {:d}'.format(len(binary)))
-    #     float_result = bin_to_float(binary, 4)
-    #     print('\tBinary to float: %f' % float_result)
-    #     dV = f-float_result
-    #     print('\tDifference is: %f\n' % dV)
+    for f in 0.0,-1,1,-2, 2,4,6:
+        print('Test value: %f' % f)
+        binary = float32_to_bin(f)
+        print('\tFloat to binary: %r' % binary)
+        print('\tLength is: {:d}'.format(len(binary)))
+        float_result = bin_to_float(binary, 4)
+        print('\tBinary to float: %f' % float_result)
+        dV = f-float_result
+        print('\tDifference is: %f\n' % dV)
 
-    for f in range(5,20,2):
-        for j in range(5,25,3):
-            print("'b{:s},'b{:s},".format(float32_to_bin(f/10.0),float32_to_bin(j/10.0)))
+    # for f in range(5,20,2):
+    #     for j in range(5,25,3):
+    #         print("'b{:s},'b{:s},".format(float32_to_bin(f/10.0),float32_to_bin(j/10.0)))
 
-    for f in range(5,20,2):
-        for j in range(5,25,3):
-            print("'b{:s},".format(float32_to_bin((f+j)/10.0)))
+    # for f in range(5,20,2):
+    #     for j in range(5,25,3):
+    #         print("'b{:s},".format(float32_to_bin((f+j)/10.0)))
 
 
 
