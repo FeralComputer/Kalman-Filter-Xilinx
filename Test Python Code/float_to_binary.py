@@ -41,17 +41,15 @@ if __name__ == '__main__':
         dV = f-float_result
         print('\tDifference is: %f\n' % dV)
 
-    # for f in range(5,20,2):
-    #     for j in range(5,25,3):
+    # for f in range(-20,20,5):
+    #     for j in range(-25,25,9):
     #         print("'b{:s},'b{:s},".format(float32_to_bin(f/10.0),float32_to_bin(j/10.0)))
 
-    # for f in range(5,20,2):
-    #     for j in range(5,25,3):
+    # for f in range(-20,20,5):
+    #     for j in range(-25,25,9):
     #         print("'b{:s},".format(float32_to_bin((f+j)/10.0)))
 
 
 
-    binary='01000001101111011010111010010111'
-    print(bin_to_float(binary,4))
 
         
