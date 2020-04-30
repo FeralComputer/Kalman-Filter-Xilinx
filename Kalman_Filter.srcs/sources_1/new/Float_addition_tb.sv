@@ -36,8 +36,8 @@ module Float_addition_tb();
         repeat (1)@(posedge clk)
         reset_n = 1; 
         enable = 1; 
-        for (shortreal i = -10; i < 10; i + = 0.31456)begin
-            for (shortreal j = -10; j < 10; j + = 0.645156)begin
+        for (shortreal i = -10; i < 10; i += 0.31456)begin
+            for (shortreal j = -10; j < 10; j += 0.645156)begin
                 idata = $shortrealtobits(i); 
                 repeat (1)@(posedge clk)
                 idata = $shortrealtobits(j); 

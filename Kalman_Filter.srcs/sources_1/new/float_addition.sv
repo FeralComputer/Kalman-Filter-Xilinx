@@ -135,11 +135,10 @@ module Float_addition(input logic clk,
                         result.exponent<=0;
                         result.significant<=0;
                     end else begin
-                        for (int i=47;i>=47-24;i--) begin
-                            if(equalized_smallest_num[i+1]) begin
+                        for (int i=47;i>=23;i=i-1) begin
+                            priority if(equalized_smallest_num[i+1]) begin
                                 result.exponent<=a.exponent+(i-46);
                                 result.significant<=equalized_smallest_num[i-:23];
-                                i=0;
                             end
                         end
                     end
