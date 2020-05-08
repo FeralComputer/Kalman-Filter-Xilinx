@@ -25,9 +25,9 @@ import float:: * ;
 module Float_addition_tb(); 
 
     logic clk = 0, reset_n = 0, enable = 0, data_ready; 
-    float32 idata, odata; 
+    float32 idata, odata, expected; 
     Float_addition adder(clk, idata, odata, data_ready, reset_n, enable); 
-    int failed = 0; 
+    int failed = 0,number_of_tests=0; 
     logic run_failed = 0; 
     shortreal ij = 0; 
 
@@ -38,12 +38,14 @@ module Float_addition_tb();
         enable = 1; 
         for (shortreal i = -10; i < 10; i += 0.31456)begin
             for (shortreal j = -10; j < 10; j += 0.645156)begin
+                number_of_tests=number_of_tests+1;
                 idata = $shortrealtobits(i); 
                 repeat (1)@(posedge clk)
                 idata = $shortrealtobits(j); 
                 ij = i + j; 
+                expected= $shortrealtobits(ij);
     //            wait(data_ready)
-                repeat (6)@(posedge clk)
+                repeat (2)@(posedge clk)
                 clk = clk; 
                 
                 if ($bitstoshortreal(odata) - (ij) >= 0.001 || 
@@ -60,9 +62,9 @@ module Float_addition_tb();
         
         
         if (failed)
-            $display("Test failed with %d failures", failed); 
+            $display("Test failed with %d failures out of %d tests", failed,number_of_tests); 
         else
-            $display("Test passed"); 
+            $display("Test passed | Number of Tests: %d", number_of_tests); 
         repeat (3)@(posedge clk)
         $stop; 
     end
