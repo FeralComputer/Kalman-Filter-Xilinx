@@ -43,7 +43,7 @@ module Float_multiplication_tb();
                 ij = i * j; 
                 expected= $shortrealtobits(ij);
     //            wait(data_ready)
-                repeat (5)@(posedge clk)
+                repeat (2)@(posedge clk)
                 clk = clk; 
                 
                 if ($bitstoshortreal(odata) - (ij) >= 0.001 || 

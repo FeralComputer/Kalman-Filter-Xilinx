@@ -18,19 +18,19 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+import float32_multiplication::*;
 //Function msb_search finds the most significant '1' and returns its index
     // input: added_significants is the added significants of two float32s
     // output: int the index of the most significant '1'
     // NOTE: this function could be abstracted more for general purpose
-function automatic int msb_search_(input logic [50:0] added_significants); 
-    for (int i = 49; i >= 23; i = i-1)begin:unrolling_normalization
-        if (added_significants[i + 1])begin
-            msb_search_ = i; 
-            break; 
-        end
-    end
-endfunction
+//function automatic int msb_search_(input logic [50:0] added_significants); 
+//    for (int i = 49; i >= 23; i = i-1)begin:unrolling_normalization
+//        if (added_significants[i + 1])begin
+//            msb_search_ = i; 
+//            break; 
+//        end
+//    end
+//endfunction
 
 import float:: * ; 
 
@@ -44,13 +44,11 @@ module Float_multiplication(input logic clk,
                         input logic enable
                         );
     
-    enum {load_a,load_b,add_exponent,multiply_significants,determine_sign,send_result} state;                    
+    enum {load_a,load_b,send_result} state;                    
     float32 a,b,result;
-    logic [50:0] resultant;
-    int shift=0;
     
     always_comb begin
-        shift=msb_search_(resultant);    
+        result=float32_multiplication::multiply_float32(a,b);    
     end
     
     always_ff @(posedge clk) begin
@@ -67,22 +65,6 @@ module Float_multiplication(input logic clk,
                     
                 load_b: begin
                     b<=idata;
-                    state<=multiply_significants;
-                    end
-                    
-                multiply_significants: begin
-                    resultant<={1'b1,a.significant}*{1'b1,b.significant};
-                    state<=add_exponent;
-                    end
-       
-               add_exponent: begin
-                    result.exponent<=a.exponent+b.exponent-127+(shift-45);
-                    state<=determine_sign;
-                    end     
-       
-                determine_sign: begin
-                    result.sign<=a.sign^b.sign;
-                    result.significant<=resultant[shift-:23];
                     state<=send_result;
                     end
                     

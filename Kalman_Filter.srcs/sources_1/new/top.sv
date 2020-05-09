@@ -29,10 +29,12 @@ module top(
     logic [7:0] data_in='1;
     logic clk=0;
     logic enable=0,reset_n=1;
-    float32 idata,odata;
+    float32 idata,odata,odata2;
+    logic data_ready,data_ready2;
     
 //    Kalman_Filter kf (.clk,.data_in,.enable,.odata(odata[7:0]));
     Float_addition fadd(clk,idata,odata,data_ready,reset_n,enable);
+    Float_multiplication fmult(clk,idata,odata2,data_ready2,reset_n,enable);
     
     
     
