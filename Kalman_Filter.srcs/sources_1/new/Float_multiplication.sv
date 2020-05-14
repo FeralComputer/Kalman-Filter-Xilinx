@@ -19,19 +19,6 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 import float32_multiplication::*;
-//Function msb_search finds the most significant '1' and returns its index
-    // input: added_significants is the added significants of two float32s
-    // output: int the index of the most significant '1'
-    // NOTE: this function could be abstracted more for general purpose
-//function automatic int msb_search_(input logic [50:0] added_significants); 
-//    for (int i = 49; i >= 23; i = i-1)begin:unrolling_normalization
-//        if (added_significants[i + 1])begin
-//            msb_search_ = i; 
-//            break; 
-//        end
-//    end
-//endfunction
-
 import float:: * ; 
 
 
