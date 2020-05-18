@@ -9,7 +9,8 @@
 // Project Name: Kalman Filter
 // Target Devices: 
 // Tool Versions: 
-// Description: multiplies and accumulates float32s in N+1 cycles
+// Description: multiplies and accumulates float32s in N cycles if the new itteration
+//              starts while the result is returned
 // 
 // Dependencies: float32_multiplication, float32_addition
 // 
@@ -41,6 +42,7 @@ module MAC(
     
     
     always_comb begin
+        //multiplies a and b inputs and accumulates the result if idata is valid
         multiplication_result=float32_multiplication::multiply_float32(a,b);
         if (idata_valid)  
             next_accumulated_result=add_float32(accumulated_result,multiplication_result);
@@ -72,15 +74,16 @@ module MAC(
                 end
                 
                 send_result: begin
-                    result<=accumulated_result;
+                    result<=next_accumulated_result;
                     result_ready<=1;
                     
-                    accumulated_result<=0;
-                    
-                    if (idata_valid)
+                    if (idata_valid) begin
                         state<=accumulate;
-                    else
+                        accumulated_result<=0;
+                    end else begin
+                        accumulated_result<=0;
                         state<=wait_for_data;
+                    end
                 end
                 
                 wait_for_data: begin

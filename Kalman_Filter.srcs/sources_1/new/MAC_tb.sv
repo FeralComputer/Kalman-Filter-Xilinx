@@ -63,17 +63,19 @@ module Float_MAC_tb();
                         repeat(wait_cycles-1)@(posedge clk) begin
                         end
                         idata_valid=1;
-                    end 
+                    end
+                    if ((i>=i_max-i_increment)&&(j>=j_max-j_increment))
+                         request_result_and_reset=1;
                     repeat (1)@(posedge clk) begin
                     end
                     
                 end
             end
             
-            request_result_and_reset=1;
+            
 
-            repeat (1)@(posedge clk) begin
-            end
+//            repeat (1)@(posedge clk) begin
+//            end
             
             request_result_and_reset=0;
             
@@ -81,8 +83,7 @@ module Float_MAC_tb();
             wait (result_ready==1) begin
             end
           
-            if ($bitstoshortreal(result) - (ij) >= 0.1 || 
-                (ij) - $bitstoshortreal(result) >= 0.1)begin
+            if ($bitstoshortreal(result) - (ij) >= 0.1 || (ij) - $bitstoshortreal(result) >= 0.1)begin
                     run_failed = 1; 
                     failed = failed + 1; 
     //                        Only dispays the failed tests
