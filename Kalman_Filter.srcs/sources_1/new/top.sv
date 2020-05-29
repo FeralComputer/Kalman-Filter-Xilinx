@@ -21,14 +21,21 @@
 
 import float::*;
 module top(
-//    input [7:0] Data,
-//    input clk,
-//    input enable
+    input float32 idata,
+    input clk,
+    input enable,
+    output float32 odata
     );
-    logic clk = 0, reset_n = 0, enable = 0, request_result_and_reset=0,result_ready,idata_valid=0; 
-    float32 a, b, result, expected; 
-    MAC mac(a, b, result, clk, reset_n, enable, request_result_and_reset,idata_valid, result_ready);
+//    logic clk = 0, reset_n = 0, enable = 0, request_result_and_reset=0,result_ready,idata_valid=0; 
+//    float32 a, b, result, expected; 
+//    MAC mac(a, b, result, clk, reset_n, enable, request_result_and_reset,idata_valid, result_ready);
     
+    parameter matrix_array_length=3;
+    parameter matrix_size=6;
     
+    Float_matrix_manipulation_interface i_bus();
+    assign idata =i_bus.idata;
+    assign odata = i_bus.odata;
+    Float_matrix_manipulation # (matrix_array_length,matrix_size) matrix_pu(i_bus);
     
 endmodule

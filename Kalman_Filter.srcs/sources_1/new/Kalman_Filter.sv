@@ -21,18 +21,18 @@
 
 
 module Kalman_Filter(
-    input logic clk,
-    input logic [7:0] data_in,
-    input logic enable,
-    output logic [7:0] data_out 
-    );
+input logic clk, 
+input logic [7:0] data_in, 
+input logic enable, 
+output logic [7:0] data_out 
+    ); 
 
-    
-    always_ff @(posedge clk) begin
+
+always_ff @(posedge clk)begin
         if (enable)
-            data_out<=data_in;
-        else
-            data_out<='0;
+data_out <= data_in; 
+else
+            data_out <= '0;
             
     end
 endmodule

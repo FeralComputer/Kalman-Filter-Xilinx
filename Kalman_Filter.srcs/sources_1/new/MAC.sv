@@ -19,79 +19,82 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-import float32_multiplication::*;
-import float32_addition::*;
+import float32_multiplication:: * ; 
+import float32_addition:: * ; 
 import float:: * ; 
 
+interface MAC_interface (); 
+float32 a, b; 
+float32 result; 
+logic clk, reset_n, enable, request_result_and_reset, idata_valid, result_ready; 
+modport mac_stream(input a, input b, output result, input clk, input reset_n, input enable, input request_result_and_reset, 
+                    input idata_valid, output result_ready); 
+modport upstream(output a, output b, input result, output clk, output reset_n, output enable, output request_result_and_reset, 
+                    output idata_valid, input result_ready); 
+endinterface
+
 module MAC(
-    input float32 a,
-    input float32 b,
-    output float32 result,
-    input logic clk,
-    input logic reset_n,
-    input logic enable,
-    input logic request_result_and_reset,
-    input logic idata_valid,
-    output logic result_ready
-    );
-    
-    float32 multiplication_result;
-    float32 accumulated_result,next_accumulated_result;
-    
-    enum {entry,accumulate,send_result,wait_for_data}state;
-    
-    
-    always_comb begin
-        //multiplies a and b inputs and accumulates the result if idata is valid
-        multiplication_result=float32_multiplication::multiply_float32(a,b);
-        if (idata_valid)  
-            next_accumulated_result=add_float32(accumulated_result,multiplication_result);
-        else
-            next_accumulated_result=accumulated_result;
+    MAC_interface.mac_stream mac
+    ); 
+
+float32 multiplication_result; 
+float32 accumulated_result, next_accumulated_result; 
+
+enum {entry, accumulate, send_result, wait_for_data}state; 
+
+
+always_comb begin
+    //multiplies a and b inputs and accumulates the result if idata is valid
+    multiplication_result = float32_multiplication::multiply_float32(mac.a, mac.b); 
+    if (mac.idata_valid)
+        next_accumulated_result = add_float32(accumulated_result, multiplication_result); 
+    else
+        next_accumulated_result = accumulated_result; 
     end
     
-    always_ff @(posedge clk) begin
-        if(~reset_n) begin
-            state<=entry;
-            result_ready<=0;
-            accumulated_result<=0;
-            
-        end
-        else if (enable) begin
-            case(state)
-                entry: begin
-                    accumulated_result<=0;
-                    state<=accumulate;                    
-                end
+always_ff @(posedge mac.clk)begin
+    if (~mac.reset_n)begin
+        state <= entry; 
+        mac.result_ready <= 0; 
+        accumulated_result <= 0; 
+
+    end
+    else if (mac.enable)begin
+        case(state)
+            entry:begin
+                accumulated_result <= 0; 
+                state <= accumulate; 
+            end
                 
-                accumulate: begin
-                    result_ready<=0;
-                    
-                    accumulated_result<= next_accumulated_result;
-                    
-                    if(request_result_and_reset)
-                        state<=send_result;
-                end
+            accumulate:begin
+                mac.result_ready <= 0; 
+
+                accumulated_result <= next_accumulated_result; 
+
+                if (mac.request_result_and_reset)
+                    state <= send_result; 
+            end
                 
-                send_result: begin
-                    result<=next_accumulated_result;
-                    result_ready<=1;
-                    
-                    if (idata_valid) begin
-                        state<=accumulate;
-                        accumulated_result<=0;
-                    end else begin
-                        accumulated_result<=0;
-                        state<=wait_for_data;
-                    end
+            send_result:begin
+                mac.result <= accumulated_result; 
+                mac.result_ready <= 1; 
+
+                if (mac.idata_valid)begin
+                    state <= accumulate; 
+                    accumulated_result <= 0; 
+                end else begin
+                    accumulated_result <= 0; 
+                    state <= wait_for_data; 
                 end
+            end
                 
-                wait_for_data: begin
-                    result_ready<=0;
-                    if(idata_valid)
-                        state<=accumulate;
-                end
-            endcase
+            wait_for_data:begin
+                mac.result_ready <= 0; 
+                if (mac.idata_valid)
+                    state <= accumulate; 
+            end
+
+        endcase
             
         end
     end

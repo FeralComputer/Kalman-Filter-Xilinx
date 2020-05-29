@@ -55,7 +55,7 @@ function automatic float32 normalize_float(input float32 larger_mag_number, inpu
         int shift = msb_search(unnormalized_sum); 
 //        $display("Shift is %d",shift);
         normalize_float.exponent = larger_mag_number.exponent + shift-46; 
-        normalize_float.significant = unnormalized_sum[shift - :23]; 
+        normalize_float.significant = unnormalized_sum[shift -:23]; 
     end
 endfunction
 
