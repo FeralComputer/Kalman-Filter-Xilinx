@@ -1,0 +1,18 @@
+{signal: [
+  {name: 'clk', wave: 'P..........'},
+  {name: 'reset_n', wave: '01.........'},
+  {name: 'ena', wave: '0..1.0.....'},
+  {name: 'enb', wave: '0......1.0.'},
+  {name: 'addra', wave: 'x..==x.....'},
+  {name: 'addrb', wave: 'x......==x.'},
+  {name: 'dia', wave: 'x..==x.....'},
+  {name: 'dob', wave: 'x......==x.'},
+  {name: 'idata', wave: 'x..==x.....'},
+  {name: 'idata_valid', wave: 'x..1.0.....'},
+  {name: 'odata', wave: 'x......==x.'},
+  {name: 'odata_valid', wave: '0......1.0.'},
+  {name: 'state', wave: 'x3.4.3.5.3.', data:['idle','load','idle','read','idle']},
+  {name: 'instruction', wave: 'xx4.3.5.3..', data:['load','idle','read','idle']},
+  ],
+  config: { hscale: 3 }
+}
