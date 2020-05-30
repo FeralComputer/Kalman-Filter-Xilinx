@@ -23,6 +23,8 @@ import float32_multiplication:: * ;
 import float32_addition:: * ; 
 import float:: * ; 
 
+//interface MAC_interface contains the data between MAC and parent module
+// NOTE: inputs might be a good thing to have
 interface MAC_interface (); 
 float32 a, b; 
 float32 result; 
@@ -33,6 +35,9 @@ modport upstream(output a, output b, input result, output clk, output reset_n, o
                     output idata_valid, input result_ready); 
 endinterface
 
+//Module Float_matrix_manipulation stores, adds, multiplies, and returns matricies
+// input: (MAC_interface.mac_stream) mac which holds the data between parent and this module
+// NOTE: should rename to Float32_MAC
 module MAC(
     MAC_interface.mac_stream mac
     ); 
@@ -79,10 +84,10 @@ always_ff @(posedge mac.clk)begin
                 mac.result <= accumulated_result; 
                 mac.result_ready <= 1; 
 
-                if (mac.idata_valid)begin
+                if (mac.idata_valid)begin //skips idle and goes to accumulate
                     state <= accumulate; 
                     accumulated_result <= 0; 
-                end else begin
+                end else begin // go to idle
                     accumulated_result <= 0; 
                     state <= wait_for_data; 
                 end

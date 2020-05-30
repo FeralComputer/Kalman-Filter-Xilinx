@@ -1,15 +1,16 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
+// Company: Heyer Industries
+// Engineer: Kevin Heyer
 // 
 // Create Date: 05/14/2020 12:01:29 PM
 // Design Name: 
 // Module Name: Float_matrix_tb
-// Project Name: 
+// Project Name: Kalman Filter
 // Target Devices: 
 // Tool Versions: 
-// Description: 
+// Description: Tests out the load, read, add, multiply, and transpose features of
+//              the float_matrix_manipulation module.
 // 
 // Dependencies: 
 // 
@@ -21,9 +22,12 @@
 import float::*;
 
 
-parameter matrix_array_length=1;
-parameter matrix_size=2;
-
+parameter matrix_array_length=2;
+parameter matrix_size=3;
+//Module Float_matrix_tb tests float_matrix_manipulation module
+// 
+// NOTE: this tb and most other tb's can be improved by moving each section out of the module,
+//       and increasing the abstraction. The matrix data could also be loaded from a file.
 module Float_matrix_tb();
 
     Float_matrix_manipulation_interface i_bus();
@@ -36,7 +40,12 @@ module Float_matrix_tb();
     
     
     
-    float32 data_sent [0:matrix_array_length*matrix_size*matrix_size-1]= {$shortrealtobits(1.0),$shortrealtobits(2.0),$shortrealtobits(3.0),$shortrealtobits(4.0)};
+    float32 data_sent [0:matrix_array_length*matrix_size*matrix_size-1]= {$shortrealtobits(1.0),$shortrealtobits(2.0),$shortrealtobits(3.0),
+                                                                          $shortrealtobits(4.0),$shortrealtobits(5.0),$shortrealtobits(6.0),
+                                                                          $shortrealtobits(7.0),$shortrealtobits(8.0),$shortrealtobits(9.0),
+                                                                          $shortrealtobits(10.0),$shortrealtobits(12.0),$shortrealtobits(13.0),
+                                                                          $shortrealtobits(14.0),$shortrealtobits(15.0),$shortrealtobits(16.0),
+                                                                          $shortrealtobits(17.0),$shortrealtobits(18.0),$shortrealtobits(19.0)};
     float32 data_received [0:matrix_array_length*matrix_size*matrix_size-1];
     
     initial begin
@@ -63,7 +72,7 @@ module Float_matrix_tb();
                 for(int x=0;x<matrix_size;x+=1) begin
                     i_bus.xindex=x;
                     
-                    i_bus.idata=data_sent[y*matrix_size+x];
+                    i_bus.idata=data_sent[i*matrix_size*matrix_size+y*matrix_size+x];
                     repeat (1) @ (posedge i_bus.clk) begin
                     end
                     if(x==matrix_size-1 && y==matrix_size-1) 
@@ -73,6 +82,7 @@ module Float_matrix_tb();
                 end
             end
         end
+        // check if data is being written when not supposed to
         i_bus.idata=$shortrealtobits(99.0);
         
         i_bus.instruction=i_bus.idle;
@@ -112,15 +122,20 @@ module Float_matrix_tb();
             end            
         end
         
-        $display("Count of data received is: %d",received_count);
+        // this is an indicator if extra bits are being read or not
+        if(received_count==matrix_array_length*matrix_size*matrix_size-1)
+            $display("Count of data received is: %d as expected",received_count);
+        else
+            $display("FAIL: Count of data received is: %d and should have been: %d",received_count,matrix_array_length*matrix_size*matrix_size-1);
+        
         
         // evaluate result
         for (int i=0;i<matrix_array_length*matrix_size*matrix_size;i+=1) begin
             f_received=$bitstoshortreal(data_received[i]);
             f_expected=$bitstoshortreal(data_sent[i]);
             i_pos=i/matrix_size/matrix_size;
-            y_pos=(i-i_pos)/matrix_size;
-            x_pos=(i-i_pos)-y_pos;
+            y_pos=(i-i_pos*matrix_size*matrix_size)/matrix_size;
+            x_pos=(i-i_pos*matrix_size*matrix_size)-y_pos*matrix_size;
             if(f_received==f_expected) begin
                 $display("PASS: Matrix %d (%d,%d) was successfully written and read",i_pos,x_pos,y_pos);
             end

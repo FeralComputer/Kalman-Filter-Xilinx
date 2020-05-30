@@ -9,9 +9,10 @@
 // Project Name: Kalman Filter
 // Target Devices: 
 // Tool Versions: 
-// Description: 
+// Description: Float_matrix_manipulation stores , multiplies, adds, and
+//              returns matricies.
 // 
-// Dependencies: 
+// Dependencies: Uses float32_addition, MAC, Float32_ram_2p1c
 // 
 // Revision:
 // Revision 0.01 - File Created
@@ -20,8 +21,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 import float::*;
 
-//enum {load_matrix,return_matrix, multiply_matrix,add_matrix,idle} state;
 
+//Interface Float_matrix_manipulation_interface holds the data between parent and Float_matrix_manipulation
+// (modport) downstream is intended for Float_matrix_manipulation
+// (modport) upstream is intended for the parent module
+// NOTE: this interface could input some of the signals
 interface Float_matrix_manipulation_interface();
     float32 idata,odata;
     enum {load_matrix,return_matrix, multiply_matrix,add_matrix,idle} instruction;
@@ -52,6 +56,10 @@ interface Float_matrix_manipulation_interface();
                         output odata_valid );
 endinterface
 
+//Module Float_matrix_manipulation stores, adds, multiplies, and returns matricies
+// input: (Float_matrix_manipulation_interface.downstream) i_bus which holds the data between parent and this module
+// parameter: (int) matrix_array_length is the number of individual matricies
+// parameter: (int) matrix_size is the height/width of the square matricies used (N)
 module Float_matrix_manipulation#(matrix_array_length=2,matrix_size=2)(Float_matrix_manipulation_interface.downstream i_bus                          
 );
     logic ena, enb, wea;
@@ -65,8 +73,8 @@ module Float_matrix_manipulation#(matrix_array_length=2,matrix_size=2)(Float_mat
     MAC_interface mac();
     MAC m_mac(mac);
     
-    assign addra = i_bus.instruction==i_bus.load_matrix ? i_bus.address*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
-    assign addrb = i_bus.instruction==i_bus.return_matrix ? i_bus.address*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
+    assign addra = i_bus.instruction==i_bus.load_matrix ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
+    assign addrb = i_bus.instruction==i_bus.return_matrix ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
     assign dia = i_bus.idata;
     assign i_bus.odata = dob;
     assign enb = i_bus.instruction==i_bus.return_matrix ? 1 : 0;

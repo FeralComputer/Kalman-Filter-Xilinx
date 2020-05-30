@@ -6,10 +6,10 @@
 // Create Date: 05/24/2020 03:20:53 PM
 // Design Name: 
 // Module Name: Float32_ram_2p1c
-// Project Name: 
+// Project Name: Kalman Filter
 // Target Devices: 
 // Tool Versions: 
-// Description: 
+// Description: implementation of float32 block ram with asyncronous read
 // 
 // Dependencies: 
 // 
@@ -20,6 +20,16 @@
 //////////////////////////////////////////////////////////////////////////////////
 import float::*;
 
+//Module Float32_ram_2p1c implements float32 blockram with asyncronous read
+// input: (logic) clk clock for writes 
+// input: (logic) ena enables writing to ram
+// input: (logic) enb enables reading from ram
+// input: (logic) wea enables writing to ram (likely redundant)
+// input: (int) addra address for writing to ram
+// input: (int) addrb address for reading from ram
+// input: (float32) dia data to be written to ram 
+// parameter: (int) RAM_SIZE=1024 is the size of ram created
+// output: (float32) dob data read from ram
 module Float32_ram_2p1c#(RAM_SIZE=1024)(   input logic clk, ena, enb, wea, 
                                            int addra, addrb,
                                            float32 dia, 
@@ -35,11 +45,6 @@ module Float32_ram_2p1c#(RAM_SIZE=1024)(   input logic clk, ena, enb, wea,
         end
     end
     
-//    always_ff @ (posedge clk) begin
-//        if(enb) begin
-//            dob<=ram[addrb];
-//        end
-//    end
     assign dob = enb ? ram[addrb]: 'b0;
     
 endmodule
