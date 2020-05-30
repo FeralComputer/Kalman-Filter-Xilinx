@@ -48,51 +48,88 @@ module Float_matrix_tb();
                                                                           $shortrealtobits(17.0),$shortrealtobits(18.0),$shortrealtobits(19.0)};
     float32 data_received [0:matrix_array_length*matrix_size*matrix_size-1];
     
-    initial begin
-        i_bus.reset_n = 0;
-        i_bus.clk=0;
-        repeat (1)@(posedge i_bus.clk)
-        i_bus.reset_n = 1; 
-        i_bus.enable = 1; 
-        i_bus.instruction=i_bus.idle;
-        i_bus.idata=$shortrealtobits(-99.0);
-        
-        repeat (1) @ (posedge i_bus.clk) begin
-        end
-        
-        //load matrices
+    task load_data;
+        input float32 send_data [0:matrix_size*matrix_size-1];
+    
         i_bus.instruction=i_bus.load_matrix;
         repeat (1)@(posedge i_bus.clk) begin
         end
         i_bus.idata_valid=1;
-        for(int i=0;i<matrix_array_length;i+=1) begin
-            i_bus.address=i;
-            for(int y=0;y<matrix_size;y+=1) begin
-                i_bus.yindex=y;
-                for(int x=0;x<matrix_size;x+=1) begin
-                    i_bus.xindex=x;
-                    
-                    i_bus.idata=data_sent[i*matrix_size*matrix_size+y*matrix_size+x];
-                    repeat (1) @ (posedge i_bus.clk) begin
-                    end
-                    if(x==matrix_size-1 && y==matrix_size-1) 
-                        i_bus.idata_valid=0;
-                    
-                    
+        
+        for(int y=0;y<matrix_size;y+=1) begin
+            i_bus.yindex=y;
+            for(int x=0;x<matrix_size;x+=1) begin
+                i_bus.xindex=x;
+                
+                i_bus.idata=send_data[y*matrix_size+x];
+                repeat (1) @ (posedge i_bus.clk) begin
                 end
+                if(x==matrix_size-1 && y==matrix_size-1) 
+                    i_bus.idata_valid=0;
+                
+                
             end
         end
+
         // check if data is being written when not supposed to
         i_bus.idata=$shortrealtobits(99.0);
         
         i_bus.instruction=i_bus.idle;
-
-        repeat ($urandom_range(10,0)) @ (posedge i_bus.clk) begin
+    
+    
+    endtask
+    
+    task load_all;
+        input float32 send_data[0:matrix_array_length*matrix_size*matrix_size-1];
+        for(int i=0; i<matrix_array_length;i+=1) begin
+            i_bus.address=i;
+            load_data(send_data[i*matrix_size*matrix_size+:matrix_size*matrix_size]);
         end
-        
+    endtask
+    
+    task read_matrix;
+        input int index;
+        output float32 result_data [0:matrix_size*matrix_size-1];
+        output int count;
         //read matrices
         i_bus.instruction=i_bus.return_matrix;
+        count=0;
+        i_bus.address=index;
         
+        for(int y=0;y<matrix_size;y+=1) begin
+            i_bus.yindex=y;
+            for(int x=0;x<matrix_size;x+=1) begin
+                i_bus.xindex=x;
+                
+                if(i_bus.odata_valid) begin
+                    result_data[count]=i_bus.odata;
+                    count+=1;
+                end
+                
+                repeat (1) @ (posedge i_bus.clk) begin
+                end
+                
+            end
+        end
+        
+        i_bus.instruction=i_bus.idle;
+        
+        while(i_bus.odata_valid) begin
+            result_data[count]=i_bus.odata;
+            count+=1;
+            repeat (1) @ (posedge i_bus.clk) begin
+            end            
+        end
+        
+    endtask
+    
+    
+    task read_all;
+        output float32 result_data [0:matrix_array_length*matrix_size*matrix_size-1];
+        output int count;
+        //read matrices
+        i_bus.instruction=i_bus.return_matrix;
+        count=0;
         //read back matrix
         for(int i=0;i<matrix_array_length;i+=1) begin
             i_bus.address=i;
@@ -102,8 +139,8 @@ module Float_matrix_tb();
                     i_bus.xindex=x;
                     
                     if(i_bus.odata_valid) begin
-                        data_received[received_count]=i_bus.odata;
-                        received_count+=1;
+                        result_data[count]=i_bus.odata;
+                        count+=1;
                     end
                     
                     repeat (1) @ (posedge i_bus.clk) begin
@@ -116,23 +153,28 @@ module Float_matrix_tb();
         i_bus.instruction=i_bus.idle;
         
         while(i_bus.odata_valid) begin
-            data_received[received_count]=i_bus.odata;
-            received_count+=1;
+            result_data[count]=i_bus.odata;
+            count+=1;
             repeat (1) @ (posedge i_bus.clk) begin
             end            
         end
-        
+    endtask
+    
+    task test_data;
+        input int count;
+        input float32 result_data [0:matrix_array_length*matrix_size*matrix_size-1];
+        input float32 send_data [0:matrix_array_length*matrix_size*matrix_size-1];
         // this is an indicator if extra bits are being read or not
-        if(received_count==matrix_array_length*matrix_size*matrix_size-1)
-            $display("Count of data received is: %d as expected",received_count);
+        if(count==matrix_array_length*matrix_size*matrix_size)
+            $display("Count of data received is: %d as expected",count);
         else
-            $display("FAIL: Count of data received is: %d and should have been: %d",received_count,matrix_array_length*matrix_size*matrix_size-1);
+            $display("FAIL: Count of data received is: %d and should have been: %d",count,matrix_array_length*matrix_size*matrix_size);
         
         
         // evaluate result
         for (int i=0;i<matrix_array_length*matrix_size*matrix_size;i+=1) begin
-            f_received=$bitstoshortreal(data_received[i]);
-            f_expected=$bitstoshortreal(data_sent[i]);
+            f_received=$bitstoshortreal(result_data[i]);
+            f_expected=$bitstoshortreal(send_data[i]);
             i_pos=i/matrix_size/matrix_size;
             y_pos=(i-i_pos*matrix_size*matrix_size)/matrix_size;
             x_pos=(i-i_pos*matrix_size*matrix_size)-y_pos*matrix_size;
@@ -144,6 +186,35 @@ module Float_matrix_tb();
                         f_expected,f_received);
             end
         end
+    endtask
+    
+    
+    
+    initial begin
+        i_bus.reset_n = 0;
+        i_bus.clk=0;
+        repeat (1)@(posedge i_bus.clk)
+        i_bus.reset_n = 1; 
+        i_bus.enable = 1; 
+        i_bus.instruction=i_bus.idle;
+        i_bus.idata=$shortrealtobits(-99.0);
+        
+        repeat (1) @ (posedge i_bus.clk) begin
+        end
+        
+        //load all
+        load_all(data_sent);
+        
+        // wait a random amount of time
+        repeat ($urandom_range(10,0)) @ (posedge i_bus.clk) begin
+        end
+        
+        //read all
+        read_all(data_received,received_count);
+//        read_matrix(0,data_received[0:matrix_size*matrix_size-1],received_count);    
+//        read_matrix(1,data_received[matrix_size*matrix_size:2*matrix_size*matrix_size-1],received_count);       
+        //compare sent and received
+        test_data(received_count,data_received,data_sent);
 
         repeat (3)@(posedge i_bus.clk) begin
         end
