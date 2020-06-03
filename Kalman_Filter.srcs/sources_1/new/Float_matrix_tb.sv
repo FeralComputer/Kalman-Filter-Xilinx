@@ -51,15 +51,15 @@ module Float_matrix_tb();
     task load_data;
         input float32 send_data [0:matrix_size*matrix_size-1];
     
-        i_bus.instruction=i_bus.load_matrix;
-        repeat (1)@(posedge i_bus.clk) begin
-        end
+        #1ps i_bus.instruction=i_bus.load_matrix;
+//        repeat (1)@(posedge i_bus.clk) begin
+//        end
         i_bus.idata_valid=1;
         
         for(int y=0;y<matrix_size;y+=1) begin
-            i_bus.yindex=y;
+            #1ps i_bus.yindex=y;
             for(int x=0;x<matrix_size;x+=1) begin
-                i_bus.xindex=x;
+                #2ps i_bus.xindex=x;
                 
                 i_bus.idata=send_data[y*matrix_size+x];
                 repeat (1) @ (posedge i_bus.clk) begin
@@ -72,7 +72,7 @@ module Float_matrix_tb();
         end
 
         // check if data is being written when not supposed to
-        i_bus.idata=$shortrealtobits(99.0);
+        #1ps i_bus.idata=$shortrealtobits(99.0);
         
         i_bus.instruction=i_bus.idle;
     
@@ -92,14 +92,14 @@ module Float_matrix_tb();
         output float32 result_data [0:matrix_size*matrix_size-1];
         output int count;
         //read matrices
-        i_bus.instruction=i_bus.return_matrix;
+        #1ps i_bus.instruction=i_bus.return_matrix;
         count=0;
         i_bus.address=index;
         
         for(int y=0;y<matrix_size;y+=1) begin
-            i_bus.yindex=y;
+            #1ps i_bus.yindex=y;
             for(int x=0;x<matrix_size;x+=1) begin
-                i_bus.xindex=x;
+                #3ps i_bus.xindex=x;
                 
                 if(i_bus.odata_valid) begin
                     result_data[count]=i_bus.odata;
@@ -115,7 +115,7 @@ module Float_matrix_tb();
         i_bus.instruction=i_bus.idle;
         
         while(i_bus.odata_valid) begin
-            result_data[count]=i_bus.odata;
+            #3ps result_data[count]=i_bus.odata;
             count+=1;
             repeat (1) @ (posedge i_bus.clk) begin
             end            
@@ -128,7 +128,7 @@ module Float_matrix_tb();
         output float32 result_data [0:matrix_array_length*matrix_size*matrix_size-1];
         output int count;
         //read matrices
-        i_bus.instruction=i_bus.return_matrix;
+        #1ps i_bus.instruction=i_bus.return_matrix;
         count=0;
         //read back matrix
         for(int i=0;i<matrix_array_length;i+=1) begin
@@ -136,7 +136,7 @@ module Float_matrix_tb();
             for(int y=0;y<matrix_size;y+=1) begin
                 i_bus.yindex=y;
                 for(int x=0;x<matrix_size;x+=1) begin
-                    i_bus.xindex=x;
+                    #3ps i_bus.xindex=x;
                     
                     if(i_bus.odata_valid) begin
                         result_data[count]=i_bus.odata;
@@ -153,7 +153,7 @@ module Float_matrix_tb();
         i_bus.instruction=i_bus.idle;
         
         while(i_bus.odata_valid) begin
-            result_data[count]=i_bus.odata;
+            #3ps result_data[count]=i_bus.odata;
             count+=1;
             repeat (1) @ (posedge i_bus.clk) begin
             end            
@@ -193,7 +193,8 @@ module Float_matrix_tb();
     initial begin
         i_bus.reset_n = 0;
         i_bus.clk=0;
-        repeat (1)@(posedge i_bus.clk)
+        repeat (2)@(posedge i_bus.clk) begin
+        end
         i_bus.reset_n = 1; 
         i_bus.enable = 1; 
         i_bus.instruction=i_bus.idle;
@@ -210,9 +211,40 @@ module Float_matrix_tb();
         end
         
         //read all
-        read_all(data_received,received_count);
-//        read_matrix(0,data_received[0:matrix_size*matrix_size-1],received_count);    
-//        read_matrix(1,data_received[matrix_size*matrix_size:2*matrix_size*matrix_size-1],received_count);       
+//        read_all(data_received,received_count);
+        #1ps i_bus.instruction=i_bus.return_matrix;
+        received_count=0;
+        //read back matrix
+        for(int i=0;i<matrix_array_length;i+=1) begin
+            #1ps i_bus.address=i;
+            for(int y=0;y<matrix_size;y+=1) begin
+                #1ps i_bus.yindex=y;
+                for(int x=0;x<matrix_size;x+=1) begin
+                    
+                    #1ps i_bus.xindex=x;
+                    
+                    
+                    
+                    repeat (1) @ (posedge i_bus.clk) begin
+                    end
+                    if(i_bus.odata_valid) begin
+                        data_received[received_count]=i_bus.odata;
+                        received_count+=1;
+                    end
+                    
+                end
+            end
+        end
+        
+        i_bus.instruction=i_bus.idle;
+        repeat (1) @ (posedge i_bus.clk);  
+        
+        while(i_bus.odata_valid) begin
+            data_received[received_count]=i_bus.odata;
+            #1ps received_count+=1;
+            repeat (1) @ (posedge i_bus.clk);          
+        end
+     
         //compare sent and received
         test_data(received_count,data_received,data_sent);
 

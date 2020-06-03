@@ -43,8 +43,11 @@ module Float32_ram_2p1c#(RAM_SIZE=1024)(   input logic clk, ena, enb, wea,
                 ram[addra]<=dia;
             end
         end
+//        if (enb) begin
+//            dob <= ram[addrb];
+//        end
     end
     
-    assign dob = enb ? ram[addrb]: 'b0;
+    assign #1ps dob = enb ? ram[addrb]: 'b0;
     
 endmodule

@@ -28,7 +28,7 @@ import float::*;
 // NOTE: this interface could input some of the signals
 interface Float_matrix_manipulation_interface();
     float32 idata,odata;
-    enum {load_matrix,return_matrix, multiply_matrix,add_matrix,idle} instruction;
+    enum {load_matrix,return_matrix, read_write, multiply_matrix, add_matrix, idle} instruction;
     int xindex,yindex,address;
     logic idata_valid, clk,reset_n,enable,odata_valid;
                                         
@@ -73,17 +73,39 @@ module Float_matrix_manipulation#(matrix_array_length=2,matrix_size=2)(Float_mat
     MAC_interface mac();
     MAC m_mac(mac);
     
-    assign addra = i_bus.instruction==i_bus.load_matrix ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
-    assign addrb = i_bus.instruction==i_bus.return_matrix ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
-    assign dia = i_bus.idata;
-    assign i_bus.odata = dob;
-    assign enb = i_bus.instruction==i_bus.return_matrix ? 1 : 0;
-    assign ena = i_bus.instruction==i_bus.load_matrix ? 1 : 0;
+    assign #1ps addra = i_bus.instruction==i_bus.load_matrix ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
+    assign #1ps addrb = i_bus.instruction==i_bus.return_matrix ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
+    assign #1ps dia = i_bus.idata;
+    assign #1ps i_bus.odata = dob;
+    assign #1ps enb = i_bus.instruction==i_bus.return_matrix ? 1 : 0;
+    assign #1ps ena = i_bus.instruction==i_bus.load_matrix ? 1 : 0;
     assign wea = ena;
-    assign i_bus.odata_valid = enb;
+    assign #1ps i_bus.odata_valid =  i_bus.instruction==i_bus.return_matrix ? 1 : 0;
+    assign #1ps i_bus.odata_valid =  i_bus.instruction==i_bus.return_matrix ? 1 : 0;
     
     always_comb begin
-        
+//        if(~i_bus.reset_n) begin
+//            addra =0;
+//            addrb =0;
+//            ena =0;
+//            enb =0;
+//        end else begin
+//            if(i_bus.instruction==i_bus.load_matrix || i_bus.instruction == i_bus.read_write) begin
+//                addra = i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex;
+//                ena = 1;
+//            end else begin
+//                addra = 0;
+//                ena = 0;
+//            end
+            
+//            if(i_bus.instruction==i_bus.return_matrix || i_bus.instruction == i_bus.read_write) begin
+//                addrb =  i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex;
+//                enb = 1;
+//            end else begin
+//                addrb = 0;
+//                enb=0;
+//            end
+//        end
     end
     
     always_ff @(posedge i_bus.clk) begin
@@ -106,6 +128,7 @@ module Float_matrix_manipulation#(matrix_array_length=2,matrix_size=2)(Float_mat
                 end
                    
                 i_bus.load_matrix: begin
+                    dia <= i_bus.idata;
                 end
                 
                 i_bus.multiply_matrix: begin
