@@ -73,15 +73,15 @@ module Float_matrix_manipulation#(matrix_array_length=2,matrix_size=2)(Float_mat
     MAC_interface mac();
     MAC m_mac(mac);
     
-    assign #1ps addra = i_bus.instruction==i_bus.load_matrix ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
-    assign #1ps addrb = i_bus.instruction==i_bus.return_matrix ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
+    assign #1ps addra = i_bus.instruction==i_bus.load_matrix ||i_bus.instruction==i_bus.read_write ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
+    assign #1ps addrb = i_bus.instruction==i_bus.return_matrix ||i_bus.instruction==i_bus.read_write ? i_bus.address*matrix_size*matrix_size + i_bus.yindex*matrix_size + i_bus.xindex:'b0;
     assign #1ps dia = i_bus.idata;
     assign #1ps i_bus.odata = dob;
-    assign #1ps enb = i_bus.instruction==i_bus.return_matrix ? 1 : 0;
-    assign #1ps ena = i_bus.instruction==i_bus.load_matrix ? 1 : 0;
+    assign #1ps enb = i_bus.instruction==i_bus.return_matrix ||i_bus.instruction==i_bus.read_write ? 1 : 0;
+    assign #1ps ena = i_bus.instruction==i_bus.load_matrix ||i_bus.instruction==i_bus.read_write ? 1 : 0;
     assign wea = ena;
-    assign #1ps i_bus.odata_valid =  i_bus.instruction==i_bus.return_matrix ? 1 : 0;
-    assign #1ps i_bus.odata_valid =  i_bus.instruction==i_bus.return_matrix ? 1 : 0;
+    assign #1ps i_bus.odata_valid =  i_bus.instruction==i_bus.return_matrix ||i_bus.instruction==i_bus.read_write ? 1 : 0;
+    assign #1ps i_bus.odata_valid =  i_bus.instruction==i_bus.return_matrix ||i_bus.instruction==i_bus.read_write ? 1 : 0;
     
     always_comb begin
 //        if(~i_bus.reset_n) begin
