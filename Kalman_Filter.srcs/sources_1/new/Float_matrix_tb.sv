@@ -22,7 +22,7 @@
 import float::*;
 
 
-parameter matrix_array_length=2;
+parameter matrix_array_length=3;
 parameter matrix_size=3;
 //Module Float_matrix_tb tests float_matrix_manipulation module
 // 
@@ -43,9 +43,12 @@ module Float_matrix_tb();
     float32 data_sent [0:matrix_array_length*matrix_size*matrix_size-1]= {$shortrealtobits(1.0),$shortrealtobits(2.0),$shortrealtobits(3.0),
                                                                           $shortrealtobits(4.0),$shortrealtobits(5.0),$shortrealtobits(6.0),
                                                                           $shortrealtobits(7.0),$shortrealtobits(8.0),$shortrealtobits(9.0),
-                                                                          $shortrealtobits(10.0),$shortrealtobits(12.0),$shortrealtobits(13.0),
+                                                                          $shortrealtobits(11.0),$shortrealtobits(12.0),$shortrealtobits(13.0),
                                                                           $shortrealtobits(14.0),$shortrealtobits(15.0),$shortrealtobits(16.0),
-                                                                          $shortrealtobits(17.0),$shortrealtobits(18.0),$shortrealtobits(19.0)};
+                                                                          $shortrealtobits(17.0),$shortrealtobits(18.0),$shortrealtobits(19.0),
+                                                                          0,0,0,
+                                                                          0,0,0,
+                                                                          0,0,0};
     float32 data_received [0:matrix_array_length*matrix_size*matrix_size-1];
     
     task load_data;
@@ -222,6 +225,19 @@ module Float_matrix_tb();
         end
     endtask
     
+    task add_matrix;
+        input int index1, index2, index_result;
+        #1ps
+        i_bus.operator1 = index1;
+        i_bus.operator2 = index2;
+        i_bus.operator_result = index_result;
+        i_bus.instruction = i_bus.add_matrix;
+        wait (i_bus.operation_done);
+        #1ps 
+        i_bus.instruction = i_bus.idle;
+    endtask
+    
+    
     
     initial begin
         i_bus.reset_n = 0;
@@ -244,23 +260,42 @@ module Float_matrix_tb();
         end
         
         //read all
-        read_all(data_received,received_count);
+//        read_all(data_received,received_count);
         
      
         //compare sent and received
-        test_data(received_count,data_received,data_sent);
+//        test_data(received_count,data_received,data_sent);
         
         // wait a random amount of time
         repeat ($urandom_range(10,0)) @ (posedge i_bus.clk) begin
         end
 
         //test read write on second matrix
-        read_write_matrix(1,data_sent[0*matrix_size*matrix_size+:matrix_size*matrix_size],
-            data_received[0*matrix_size*matrix_size+:matrix_size*matrix_size],received_count);
-        repeat (3)@(posedge i_bus.clk) ;
-        test_data(received_count,data_received,data_sent);
-        repeat (3)@(posedge i_bus.clk) begin
+//        read_write_matrix(1,data_sent[0*matrix_size*matrix_size+:matrix_size*matrix_size],
+//            data_received[0*matrix_size*matrix_size+:matrix_size*matrix_size],received_count);
+        add_matrix(0,2,2);
+        
+        // wait a random amount of time
+        repeat ($urandom_range(10,0)) @ (posedge i_bus.clk) begin
         end
+        
+        add_matrix(0,2,2); 
+        
+        // wait a random amount of time
+        repeat ($urandom_range(10,0)) @ (posedge i_bus.clk) begin
+        end
+        
+        add_matrix(0,2,2);
+        
+        //read all
+        read_all(data_received,received_count);   
+        repeat (3)@(posedge i_bus.clk) ;
+        
+        
+        test_data(received_count,data_received,data_sent);
+        
+        repeat (3)@(posedge i_bus.clk) ;
+        
         $stop; 
     end
 

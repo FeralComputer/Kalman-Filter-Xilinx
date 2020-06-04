@@ -25,6 +25,9 @@
 import float32_addition::*;
 import float:: * ; 
 
+
+// --------------------------------------------- DEPRICATED ----------------------------------
+// ----------------------------------------- DO NOT USE!!! -----------------------------------
 module Float_addition(input logic clk, 
                         input float32 idata, 
                         output float32 odata, 
