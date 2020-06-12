@@ -308,7 +308,7 @@ module Float_matrix_tb();
         float32 result_data [0:matrix_size*matrix_size-1], result_expected [0:matrix_size*matrix_size-1];
         int count;
         string modified_name;
-        float32 sum;
+        real sum;
         // get initial values from matricies  
         read_matrix(index1, matrix1, count); 
         read_matrix(index2, matrix2, count);
@@ -318,16 +318,16 @@ module Float_matrix_tb();
             for(int x=0;x<matrix_size;x+=1) begin
                 sum = 0;
                 for(int i = 0 ; i < matrix_size; i+=1) begin
-                    sum += $shortrealtobits($bitstoshortreal(matrix1[y*matrix_size + i]) *
-                                                         $bitstoshortreal(matrix2[(i)*matrix_size + x]));
-                    $display("sum is %f: m1(%d)*m2(%d)",$bitstoshortreal(sum),i+y*matrix_size,x+i*matrix_size);
+                    sum += $bitstoshortreal(matrix1[y*matrix_size + i]) *
+                                                         $bitstoshortreal(matrix2[(i)*matrix_size + x]);
+//                    $display("sum is %f: m1(%d)*m2(%d)",$bitstoshortreal(sum),i+y*matrix_size,x+i*matrix_size);
                 end
-                result_expected[y*matrix_size + x] = sum;
+                result_expected[y*matrix_size + x] = $shortrealtobits(sum);
             end
         end
         
         //multiply the matricies
-//        multiply_matrix(index1, index2, index_result);
+        multiply_matrix(index1, index2, index_result);
         
         //read result
         read_matrix(index_result, result_data, count);
@@ -365,7 +365,7 @@ module Float_matrix_tb();
         repeat ($urandom_range(10,0)) @ (posedge i_bus.clk) begin
         end
         
-        multiply_matricies(0,2,3);
+        multiply_matricies(0,1,3);
         
         // wait a random amount of time
         repeat ($urandom_range(10,0)) @ (posedge i_bus.clk) begin

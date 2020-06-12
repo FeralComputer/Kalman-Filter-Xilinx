@@ -49,6 +49,7 @@ enum {entry, accumulate, send_result, wait_for_data}state;
 
 
 always_comb begin
+
     //multiplies a and b inputs and accumulates the result if idata is valid
     multiplication_result = float32_multiplication::multiply_float32(mac.a, mac.b); 
     if (mac.idata_valid)
@@ -73,8 +74,9 @@ always_ff @(posedge mac.clk)begin
                 
             accumulate:begin
                 mac.result_ready <= 0; 
-
-                accumulated_result <= next_accumulated_result; 
+                
+                if(mac.idata_valid)
+                    accumulated_result <= next_accumulated_result; 
 
                 if (mac.request_result_and_reset)
                     state <= send_result; 
@@ -82,14 +84,14 @@ always_ff @(posedge mac.clk)begin
                 
             send_result:begin
                 mac.result <= accumulated_result; 
-                mac.result_ready <= 1; 
+                mac.result_ready <= 1;
+                state <= accumulate;  
 
-                if (mac.idata_valid)begin //skips idle and goes to accumulate
-                    state <= accumulate; 
+                if (mac.idata_valid) begin
+                    accumulated_result <= multiplication_result; 
+                end else begin 
                     accumulated_result <= 0; 
-                end else begin // go to idle
-                    accumulated_result <= 0; 
-                    state <= wait_for_data; 
+//                    state <= wait_for_data; 
                 end
             end
                 
